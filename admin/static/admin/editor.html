@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSMC ISDD Skills Admin — Skill Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Nav -->
+  <nav class="bg-gray-900 text-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <span class="text-lg font-bold tracking-wide">TSMC ISDD Skills Admin</span>
+      <div class="flex gap-6 text-sm">
+        <a href="/admin/" class="hover:text-amber-300 transition">Dashboard</a>
+        <a href="/admin/skills.html" class="hover:text-amber-300 transition">Skills</a>
+        <a href="/admin/#plugins" class="hover:text-amber-300 transition">Plugins</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto px-4 py-8" x-data="editorPage()" x-init="init()">
+
+    <!-- Page title -->
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800" x-text="isEdit ? 'Edit Skill' : 'New Skill'"></h1>
+        <p class="text-sm text-gray-500 mt-1" x-show="isEdit">
+          Editing <span class="font-semibold" x-text="urlPlugin + ' / ' + urlSkill"></span>
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <label class="text-sm text-gray-600 font-medium">Admin Token:</label>
+        <input type="password" x-model="token" @change="saveToken()"
+               class="border border-gray-300 rounded px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-amber-400"
+               placeholder="Enter admin token" />
+      </div>
+    </div>
+
+    <!-- Status messages -->
+    <div x-show="message" x-cloak
+         :class="messageError ? 'bg-red-50 border-red-300 text-red-800' : 'bg-green-50 border-green-300 text-green-800'"
+         class="mb-5 border rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-between">
+      <span x-text="message"></span>
+      <button @click="message = ''" class="ml-4 text-xs underline opacity-70 hover:opacity-100">Dismiss</button>
+    </div>
+
+    <!-- Loading -->
+    <div x-show="loading" class="bg-white rounded-xl shadow px-6 py-12 text-center text-gray-400 text-sm">
+      Loading skill data...
+    </div>
+
+    <!-- Form -->
+    <div x-show="!loading" class="space-y-6">
+
+      <!-- Identity section -->
+      <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-base font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Identity</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Plugin -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Plugin <span class="text-red-500">*</span></label>
+            <input type="text" x-model="form.plugin" :disabled="isEdit"
+                   :class="isEdit ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : ''"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   placeholder="e.g. skill-authoring" />
+            <p x-show="isEdit" class="text-xs text-gray-400">Plugin cannot be changed in edit mode.</p>
+          </div>
+          <!-- Skill directory name -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Skill Directory Name <span class="text-red-500">*</span></label>
+            <input type="text" x-model="form.skillDir" :disabled="isEdit"
+                   :class="isEdit ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : ''"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   placeholder="e.g. skill-creator" />
+            <p class="text-xs text-gray-400">kebab-case directory name (becomes the /slash-command)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frontmatter section -->
+      <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-base font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Frontmatter</h2>
+        <div class="space-y-4">
+
+          <!-- Name -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Name (frontmatter)</label>
+            <input type="text" x-model="form.name"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   placeholder="e.g. skill-creator (leave blank to use directory name)" />
+            <p class="text-xs text-gray-400">kebab-case, max 64 chars. Defaults to directory name if omitted.</p>
+          </div>
+
+          <!-- Description -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Description
+              <span :class="form.description.length > 250 ? 'text-red-500' : 'text-gray-400'"
+                    class="ml-2 font-normal normal-case"
+                    x-text="form.description.length + '/250 chars'"></span>
+            </label>
+            <textarea x-model="form.description" rows="3"
+                      :class="form.description.length > 250 ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-400'"
+                      class="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 resize-y"
+                      placeholder="Use when someone asks to... Triggered by: '...'"></textarea>
+            <p class="text-xs text-gray-400">Front-load trigger phrases. Truncated at 250 chars in skill listing.</p>
+            <p x-show="form.description.length > 250" class="text-xs text-red-500 font-medium">
+              Description exceeds 250 characters and will be truncated.
+            </p>
+          </div>
+
+          <!-- Argument hint -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Argument Hint</label>
+            <input type="text" x-model="form.argumentHint"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   placeholder="e.g. [file-path] or <required-arg> [optional-arg]" />
+            <p class="text-xs text-gray-400">Shown in autocomplete. Use [] for optional, &lt;&gt; for required.</p>
+          </div>
+
+          <!-- Allowed tools -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Allowed Tools</label>
+            <input type="text" x-model="form.allowedTools"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                   placeholder="e.g. Read, Grep, Glob" />
+            <p class="text-xs text-gray-400">Comma-separated tool names. Leave blank to allow all tools.</p>
+          </div>
+
+          <!-- Toggles row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Disable model invocation -->
+            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <input type="checkbox" id="disableModelInvocation" x-model="form.disableModelInvocation"
+                     class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+              <div>
+                <label for="disableModelInvocation" class="text-sm font-medium text-gray-700 cursor-pointer">
+                  Disable Model Invocation
+                </label>
+                <p class="text-xs text-gray-400 mt-0.5">Prevents Claude from auto-invoking. Required for skills with side effects.</p>
+              </div>
+            </div>
+
+            <!-- Context -->
+            <div class="flex flex-col gap-1 p-3 bg-gray-50 rounded-lg">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Context</label>
+              <select x-model="form.context"
+                      class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
+                <option value="">inline (default)</option>
+                <option value="fork">fork (isolated subagent)</option>
+              </select>
+              <p class="text-xs text-gray-400">Use "fork" for tasks that should not see conversation history.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Body section -->
+      <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-base font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Skill Body</h2>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Markdown Content</label>
+          <textarea x-model="form.body" rows="14"
+                    class="border border-gray-300 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+                    placeholder="# Skill Title&#10;&#10;You are a specialist in...&#10;&#10;## Process&#10;&#10;1. Step one..."></textarea>
+          <p class="text-xs text-gray-400">Markdown instructions Claude will follow. Use imperative language ("Do X", not "This skill does X").</p>
+        </div>
+      </div>
+
+      <!-- Version bump section (edit mode only) -->
+      <div x-show="isEdit" class="bg-amber-50 border border-amber-200 rounded-xl shadow p-6">
+        <h2 class="text-base font-semibold text-amber-900 mb-1">Version Management</h2>
+        <p class="text-xs text-amber-700 mb-4">
+          Current version:
+          <span class="font-semibold" x-text="currentVersion || 'unknown'"></span>
+        </p>
+        <div class="space-y-4">
+          <!-- Bump type -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-amber-800 uppercase tracking-wider">Bump Type</label>
+            <div class="flex gap-4 flex-wrap">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="bumpType" value="patch" class="text-amber-600" />
+                <span class="text-sm text-amber-900 font-medium">Patch</span>
+                <span class="text-xs text-amber-600">(bug fixes)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="bumpType" value="minor" class="text-amber-600" />
+                <span class="text-sm text-amber-900 font-medium">Minor</span>
+                <span class="text-xs text-amber-600">(new features)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="bumpType" value="major" class="text-amber-600" />
+                <span class="text-sm text-amber-900 font-medium">Major</span>
+                <span class="text-xs text-amber-600">(breaking changes)</span>
+              </label>
+            </div>
+          </div>
+          <!-- Changelog entry -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-amber-800 uppercase tracking-wider">Changelog Entry</label>
+            <textarea x-model="changelogEntry" rows="2"
+                      class="border border-amber-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y bg-white"
+                      placeholder="Describe what changed..."></textarea>
+          </div>
+          <!-- Bump button -->
+          <button @click="bumpVersion()"
+                  :disabled="bumpingVersion"
+                  class="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+            <span x-show="!bumpingVersion">Bump Version</span>
+            <span x-show="bumpingVersion">Bumping...</span>
+          </button>
+          <div x-show="bumpMessage" class="text-sm font-medium"
+               :class="bumpError ? 'text-red-700' : 'text-green-700'"
+               x-text="bumpMessage"></div>
+        </div>
+      </div>
+
+      <!-- Save / Cancel actions -->
+      <div class="flex items-center gap-4">
+        <button @click="save()"
+                :disabled="saving"
+                class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-6 py-2.5 rounded-lg shadow transition text-sm">
+          <span x-show="!saving" x-text="isEdit ? 'Save Changes' : 'Create Skill'"></span>
+          <span x-show="saving">Saving...</span>
+        </button>
+        <a href="/admin/skills.html"
+           class="text-sm text-gray-500 hover:text-gray-700 underline transition">
+          Cancel
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function editorPage() {
+      return {
+        token: '',
+        isEdit: false,
+        urlPlugin: '',
+        urlSkill: '',
+        loading: false,
+        saving: false,
+        message: '',
+        messageError: false,
+        currentVersion: '',
+        bumpType: 'patch',
+        changelogEntry: '',
+        bumpingVersion: false,
+        bumpMessage: '',
+        bumpError: false,
+
+        form: {
+          plugin: '',
+          skillDir: '',
+          name: '',
+          description: '',
+          argumentHint: '',
+          allowedTools: '',
+          disableModelInvocation: false,
+          context: '',
+          body: '',
+        },
+
+        saveToken() {
+          localStorage.setItem('adminToken', this.token);
+        },
+
+        async init() {
+          this.token = localStorage.getItem('adminToken') || '';
+          const params = new URLSearchParams(window.location.search);
+          this.urlPlugin = params.get('plugin') || '';
+          this.urlSkill = params.get('skill') || '';
+          this.isEdit = !!(this.urlPlugin && this.urlSkill);
+
+          if (this.isEdit) {
+            this.form.plugin = this.urlPlugin;
+            this.form.skillDir = this.urlSkill;
+            await Promise.all([this.loadSkill(), this.loadMarketplace()]);
+          }
+        },
+
+        async loadSkill() {
+          this.loading = true;
+          try {
+            const res = await fetch(`/api/skills/${encodeURIComponent(this.urlPlugin)}/${encodeURIComponent(this.urlSkill)}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const fm = data.frontmatter || {};
+            this.form.name = fm.name || '';
+            this.form.description = fm.description || '';
+            this.form.argumentHint = fm['argument-hint'] || '';
+            this.form.allowedTools = Array.isArray(fm['allowed-tools'])
+              ? fm['allowed-tools'].join(', ')
+              : (fm['allowed-tools'] || '');
+            this.form.disableModelInvocation = !!fm['disable-model-invocation'];
+            this.form.context = fm.context || '';
+            this.form.body = data.body || '';
+          } catch (e) {
+            this.message = 'Failed to load skill: ' + e.message;
+            this.messageError = true;
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        async loadMarketplace() {
+          try {
+            const res = await fetch('/api/marketplace');
+            if (!res.ok) return;
+            const data = await res.json();
+            const plugins = data.plugins || [];
+            const plugin = plugins.find(p => p.name === this.urlPlugin);
+            if (plugin) this.currentVersion = plugin.version || '';
+          } catch (e) {
+            // non-fatal
+          }
+        },
+
+        buildFrontmatter() {
+          const fm = {};
+          if (this.form.name) fm.name = this.form.name;
+          if (this.form.description) fm.description = this.form.description;
+          if (this.form.argumentHint) fm['argument-hint'] = this.form.argumentHint;
+          if (this.form.allowedTools) {
+            fm['allowed-tools'] = this.form.allowedTools.split(',').map(t => t.trim()).filter(Boolean).join(', ');
+          }
+          if (this.form.disableModelInvocation) fm['disable-model-invocation'] = true;
+          if (this.form.context) fm.context = this.form.context;
+          return fm;
+        },
+
+        async save() {
+          if (!this.token) {
+            this.message = 'Please enter an admin token to save.';
+            this.messageError = true;
+            return;
+          }
+          const plugin = this.form.plugin.trim();
+          const skillDir = this.form.skillDir.trim();
+          if (!plugin || !skillDir) {
+            this.message = 'Plugin and Skill Directory Name are required.';
+            this.messageError = true;
+            return;
+          }
+
+          this.saving = true;
+          this.message = '';
+
+          const payload = {
+            frontmatter: this.buildFrontmatter(),
+            body: this.form.body,
+          };
+
+          try {
+            const method = this.isEdit ? 'PUT' : 'POST';
+            const res = await fetch(`/api/skills/${encodeURIComponent(plugin)}/${encodeURIComponent(skillDir)}`, {
+              method,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`,
+              },
+              body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              this.message = data.detail || `Save failed: HTTP ${res.status}`;
+              this.messageError = true;
+            } else {
+              this.message = this.isEdit ? 'Skill updated successfully.' : 'Skill created successfully.';
+              this.messageError = false;
+              if (!this.isEdit) {
+                // Redirect to edit mode for the newly created skill
+                window.location.href = `/admin/editor.html?plugin=${encodeURIComponent(plugin)}&skill=${encodeURIComponent(skillDir)}`;
+              }
+            }
+          } catch (e) {
+            this.message = 'Network error: ' + e.message;
+            this.messageError = true;
+          } finally {
+            this.saving = false;
+          }
+        },
+
+        async bumpVersion() {
+          if (!this.token) {
+            this.bumpMessage = 'Admin token required.';
+            this.bumpError = true;
+            return;
+          }
+          this.bumpingVersion = true;
+          this.bumpMessage = '';
+          try {
+            const res = await fetch(`/api/versions/${encodeURIComponent(this.form.plugin)}/bump`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`,
+              },
+              body: JSON.stringify({
+                bump_type: this.bumpType,
+                changelog_entry: this.changelogEntry,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              this.bumpError = true;
+              this.bumpMessage = data.detail || `Bump failed: HTTP ${res.status}`;
+            } else {
+              this.bumpError = false;
+              this.bumpMessage = `Version bumped: ${data.old_version} → ${data.new_version}`;
+              this.currentVersion = data.new_version;
+              this.changelogEntry = '';
+            }
+          } catch (e) {
+            this.bumpError = true;
+            this.bumpMessage = 'Network error: ' + e.message;
+          } finally {
+            this.bumpingVersion = false;
+          }
+        }
+      };
+    }
+  </script>
+
+</body>
+</html>

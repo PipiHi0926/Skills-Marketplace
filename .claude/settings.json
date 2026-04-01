@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "tsmc-isdd-skills": {
+      "source": {
+        "source": "url",
+        "url": "https://YOUR-INTERNAL-GIT-URL/isdd/claude-skills.git"
+      }
+    }
+  }
+}

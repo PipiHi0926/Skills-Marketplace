@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSMC ISDD Skills Admin — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Nav -->
+  <nav class="bg-gray-900 text-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <span class="text-lg font-bold tracking-wide">TSMC ISDD Skills Admin</span>
+      <div class="flex gap-6 text-sm">
+        <a href="/admin/" class="text-amber-400 font-semibold border-b-2 border-amber-400 pb-0.5">Dashboard</a>
+        <a href="/admin/skills.html" class="hover:text-amber-300 transition">Skills</a>
+        <a href="/admin/index.html#plugins" class="hover:text-amber-300 transition">Plugins</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 py-8" x-data="dashboard()" x-init="init()">
+
+    <!-- Page title -->
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+      <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+      <div class="flex items-center gap-3">
+        <label class="text-sm text-gray-600 font-medium">Admin Token:</label>
+        <input type="password" x-model="token" @change="saveToken()"
+               class="border border-gray-300 rounded px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-amber-400"
+               placeholder="Enter admin token" />
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <!-- Total Skills -->
+      <div class="bg-white rounded-xl shadow p-6 flex flex-col gap-1">
+        <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Total Skills</span>
+        <span class="text-4xl font-bold text-gray-800" x-text="loading ? '—' : skillCount"></span>
+        <span class="text-xs text-gray-400 mt-1">across all plugins</span>
+      </div>
+      <!-- Total Plugins -->
+      <div class="bg-white rounded-xl shadow p-6 flex flex-col gap-1">
+        <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Total Plugins</span>
+        <span class="text-4xl font-bold text-gray-800" x-text="loading ? '—' : pluginCount"></span>
+        <span class="text-xs text-gray-400 mt-1">registered in marketplace</span>
+      </div>
+      <!-- Last Updated -->
+      <div class="bg-white rounded-xl shadow p-6 flex flex-col gap-1">
+        <span class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Last Updated</span>
+        <span class="text-2xl font-bold text-gray-800" x-text="today"></span>
+        <span class="text-xs text-gray-400 mt-1">current date</span>
+      </div>
+    </div>
+
+    <!-- Actions row -->
+    <div class="mb-6 flex items-center gap-4 flex-wrap">
+      <button @click="syncMarketplace()"
+              :disabled="syncing"
+              class="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg shadow transition text-sm">
+        <span x-show="!syncing">Sync Marketplace</span>
+        <span x-show="syncing">Syncing...</span>
+      </button>
+      <a href="/admin/skills.html"
+         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition text-sm">
+        Manage Skills
+      </a>
+      <a href="/admin/editor.html"
+         class="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition text-sm">
+        New Skill
+      </a>
+    </div>
+
+    <!-- Sync result message -->
+    <div x-show="syncMessage" x-cloak
+         :class="syncError ? 'bg-red-50 border-red-300 text-red-800' : 'bg-green-50 border-green-300 text-green-800'"
+         class="mb-6 border rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-between">
+      <span x-text="syncMessage"></span>
+      <button @click="syncMessage = ''" class="ml-4 text-xs underline opacity-70 hover:opacity-100">Dismiss</button>
+    </div>
+
+    <!-- Error message -->
+    <div x-show="error" x-cloak class="mb-6 bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3 text-sm">
+      <span x-text="error"></span>
+    </div>
+
+    <!-- Plugins table -->
+    <div id="plugins" class="bg-white rounded-xl shadow overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800">Plugins</h2>
+        <span class="text-xs text-gray-400" x-text="pluginCount + ' plugin(s)'"></span>
+      </div>
+
+      <div x-show="loading" class="px-6 py-8 text-center text-gray-400 text-sm">Loading...</div>
+
+      <div x-show="!loading && plugins.length === 0 && !error" class="px-6 py-8 text-center text-gray-400 text-sm">
+        No plugins found. Try syncing the marketplace.
+      </div>
+
+      <table x-show="!loading && plugins.length > 0" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+          <tr>
+            <th class="px-6 py-3 text-left">Plugin Name</th>
+            <th class="px-6 py-3 text-left">Skills</th>
+            <th class="px-6 py-3 text-left">Description</th>
+            <th class="px-6 py-3 text-left">Keywords</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <template x-for="plugin in plugins" :key="plugin.name">
+            <tr class="hover:bg-gray-50 transition">
+              <td class="px-6 py-4 font-semibold text-gray-900">
+                <span x-text="plugin.name"></span>
+              </td>
+              <td class="px-6 py-4 text-gray-600">
+                <span class="inline-flex items-center justify-center bg-blue-100 text-blue-800 text-xs font-bold rounded-full w-7 h-7"
+                      x-text="plugin.skills ? plugin.skills.length : 0"></span>
+              </td>
+              <td class="px-6 py-4 text-gray-600 max-w-xs truncate" x-text="plugin.description || '—'"></td>
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-1">
+                  <template x-for="kw in (plugin.keywords || [])" :key="kw">
+                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full" x-text="kw"></span>
+                  </template>
+                  <span x-show="!plugin.keywords || plugin.keywords.length === 0" class="text-gray-400 text-xs">—</span>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    function dashboard() {
+      return {
+        token: localStorage.getItem('adminToken') || '',
+        plugins: [],
+        skillCount: 0,
+        pluginCount: 0,
+        loading: true,
+        error: '',
+        syncing: false,
+        syncMessage: '',
+        syncError: false,
+        today: new Date().toLocaleDateString('en-CA'),
+
+        saveToken() {
+          localStorage.setItem('adminToken', this.token);
+        },
+
+        async init() {
+          this.token = localStorage.getItem('adminToken') || '';
+          await Promise.all([this.fetchPlugins(), this.fetchSkills()]);
+        },
+
+        async fetchPlugins() {
+          try {
+            const res = await fetch('/api/plugins');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            this.plugins = await res.json();
+            this.pluginCount = this.plugins.length;
+          } catch (e) {
+            this.error = 'Failed to load plugins: ' + e.message;
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        async fetchSkills() {
+          try {
+            const res = await fetch('/api/skills');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const skills = await res.json();
+            this.skillCount = skills.length;
+          } catch (e) {
+            // skill count failure is non-fatal
+          }
+        },
+
+        async syncMarketplace() {
+          if (!this.token) {
+            this.syncMessage = 'Please enter an admin token first.';
+            this.syncError = true;
+            return;
+          }
+          this.syncing = true;
+          this.syncMessage = '';
+          this.syncError = false;
+          try {
+            const res = await fetch('/api/marketplace/sync', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              this.syncError = true;
+              this.syncMessage = data.detail || `Error: HTTP ${res.status}`;
+            } else {
+              this.syncMessage = `Sync complete. Found ${data.plugins_found} plugin(s).`;
+              this.syncError = false;
+              await this.fetchPlugins();
+            }
+          } catch (e) {
+            this.syncError = true;
+            this.syncMessage = 'Network error: ' + e.message;
+          } finally {
+            this.syncing = false;
+          }
+        }
+      };
+    }
+  </script>
+
+</body>
+</html>

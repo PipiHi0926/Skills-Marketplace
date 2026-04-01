@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Read(//c/Users/jason/Desktop/Project/TSMC//**)",
+      "Read(//c/Users/jason/Desktop/Project//**)"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "tsmc-isdd-skills",
+  "owner": {
+    "name": "ISDD Platform Team",
+    "email": "isdd-platform@tsmc.com"
+  },
+  "metadata": {
+    "description": "TSMC ISDD internal Claude Code skills marketplace"
+  },
+  "plugins": [
+    {
+      "name": "skill-authoring",
+      "source": "./plugins/skill-authoring",
+      "description": "Tools for creating and reviewing Claude Code skills",
+      "version": "1.0.0",
+      "category": "developer-tools",
+      "keywords": ["skill-creator", "skill-review", "authoring"]
+    }
+  ]
+}

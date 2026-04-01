@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSMC ISDD Skills Admin — Skills</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Nav -->
+  <nav class="bg-gray-900 text-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <span class="text-lg font-bold tracking-wide">TSMC ISDD Skills Admin</span>
+      <div class="flex gap-6 text-sm">
+        <a href="/admin/" class="hover:text-amber-300 transition">Dashboard</a>
+        <a href="/admin/skills.html" class="text-amber-400 font-semibold border-b-2 border-amber-400 pb-0.5">Skills</a>
+        <a href="/admin/#plugins" class="hover:text-amber-300 transition">Plugins</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 py-8" x-data="skillsPage()" x-init="init()">
+
+    <!-- Header row -->
+    <div class="mb-6 flex items-start justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Skills</h1>
+        <p class="text-sm text-gray-500 mt-1">Browse, edit, and delete skills across all plugins.</p>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <label class="text-sm text-gray-600 font-medium">Admin Token:</label>
+        <input type="password" x-model="token" @change="saveToken()"
+               class="border border-gray-300 rounded px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-amber-400"
+               placeholder="Enter admin token" />
+        <a href="/admin/editor.html"
+           class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition text-sm">
+          + New Skill
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow p-4 mb-6 flex flex-wrap gap-4 items-end">
+      <div class="flex flex-col gap-1 flex-1 min-w-48">
+        <label class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Filter by Plugin</label>
+        <select x-model="filterPlugin"
+                class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <option value="">All plugins</option>
+          <template x-for="p in allPlugins" :key="p">
+            <option :value="p" x-text="p"></option>
+          </template>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1 flex-1 min-w-48">
+        <label class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Search</label>
+        <input type="text" x-model="searchQuery" placeholder="Search skill name or description..."
+               class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      </div>
+      <button @click="filterPlugin = ''; searchQuery = ''"
+              class="text-xs text-gray-400 hover:text-gray-700 underline mt-1">Clear filters</button>
+    </div>
+
+    <!-- Status messages -->
+    <div x-show="message" x-cloak
+         :class="messageError ? 'bg-red-50 border-red-300 text-red-800' : 'bg-green-50 border-green-300 text-green-800'"
+         class="mb-5 border rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-between">
+      <span x-text="message"></span>
+      <button @click="message = ''" class="ml-4 text-xs underline opacity-70 hover:opacity-100">Dismiss</button>
+    </div>
+
+    <!-- Loading state -->
+    <div x-show="loading" class="bg-white rounded-xl shadow px-6 py-12 text-center text-gray-400 text-sm">
+      Loading skills...
+    </div>
+
+    <!-- Error state -->
+    <div x-show="!loading && fetchError" class="bg-red-50 border border-red-300 rounded-xl px-6 py-8 text-center text-red-700 text-sm">
+      <span x-text="fetchError"></span>
+      <br />
+      <button @click="fetchSkills()" class="mt-3 underline text-red-600 hover:text-red-800">Retry</button>
+    </div>
+
+    <!-- Empty state -->
+    <div x-show="!loading && !fetchError && filteredSkills.length === 0"
+         class="bg-white rounded-xl shadow px-6 py-12 text-center text-gray-400 text-sm">
+      <p class="text-lg font-medium text-gray-500 mb-2">No skills found</p>
+      <p x-show="searchQuery || filterPlugin">Try adjusting your filters.</p>
+      <p x-show="!searchQuery && !filterPlugin">
+        No skills exist yet.
+        <a href="/admin/editor.html" class="text-blue-600 underline">Create the first one.</a>
+      </p>
+    </div>
+
+    <!-- Skills table -->
+    <div x-show="!loading && !fetchError && filteredSkills.length > 0"
+         class="bg-white rounded-xl shadow overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800">
+          Skills
+          <span class="ml-2 text-sm text-gray-400 font-normal"
+                x-text="'(' + filteredSkills.length + ' shown)'"></span>
+        </h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+            <tr>
+              <th class="px-6 py-3 text-left">Plugin</th>
+              <th class="px-6 py-3 text-left">Skill Name</th>
+              <th class="px-6 py-3 text-left">Description</th>
+              <th class="px-6 py-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <template x-for="skill in filteredSkills" :key="skill.plugin + '/' + skill.name">
+              <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                  <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full"
+                        x-text="skill.plugin"></span>
+                </td>
+                <td class="px-6 py-4 font-semibold text-gray-900" x-text="skill.name"></td>
+                <td class="px-6 py-4 text-gray-500 max-w-sm">
+                  <span x-text="truncate(skill.description, 80)"></span>
+                  <span x-show="!skill.description" class="italic text-gray-300">No description</span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <a :href="`/admin/editor.html?plugin=${encodeURIComponent(skill.plugin)}&skill=${encodeURIComponent(skill.skillDir || skill.name)}`"
+                       class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-xs px-3 py-1.5 rounded transition">
+                      Edit
+                    </a>
+                    <button @click="confirmDelete(skill)"
+                            class="bg-red-100 hover:bg-red-200 text-red-800 font-medium text-xs px-3 py-1.5 rounded transition">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function skillsPage() {
+      return {
+        token: localStorage.getItem('adminToken') || '',
+        skills: [],
+        allPlugins: [],
+        filterPlugin: '',
+        searchQuery: '',
+        loading: true,
+        fetchError: '',
+        message: '',
+        messageError: false,
+
+        saveToken() {
+          localStorage.setItem('adminToken', this.token);
+        },
+
+        async init() {
+          this.token = localStorage.getItem('adminToken') || '';
+          await this.fetchSkills();
+        },
+
+        async fetchSkills() {
+          this.loading = true;
+          this.fetchError = '';
+          try {
+            const res = await fetch('/api/skills');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const raw = await res.json();
+            // Normalize: include skillDir for edit link (directory name may differ from frontmatter name)
+            this.skills = raw.map(s => ({
+              ...s,
+              skillDir: s.path ? s.path.split(/[\\/]/).slice(-2)[0] : s.name,
+              description: s.description || s.frontmatter?.description || ''
+            }));
+            this.allPlugins = [...new Set(this.skills.map(s => s.plugin))].sort();
+          } catch (e) {
+            this.fetchError = 'Failed to load skills: ' + e.message;
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        get filteredSkills() {
+          return this.skills.filter(s => {
+            const matchesPlugin = !this.filterPlugin || s.plugin === this.filterPlugin;
+            const q = this.searchQuery.toLowerCase();
+            const matchesSearch = !q ||
+              (s.name || '').toLowerCase().includes(q) ||
+              (s.description || '').toLowerCase().includes(q);
+            return matchesPlugin && matchesSearch;
+          });
+        },
+
+        truncate(str, len) {
+          if (!str) return '';
+          return str.length > len ? str.slice(0, len) + '…' : str;
+        },
+
+        async confirmDelete(skill) {
+          const confirmed = window.confirm(
+            `Delete skill "${skill.name}" from plugin "${skill.plugin}"?\n\nThis will permanently remove the SKILL.md directory. This cannot be undone.`
+          );
+          if (!confirmed) return;
+
+          if (!this.token) {
+            this.message = 'Please enter an admin token to perform deletions.';
+            this.messageError = true;
+            return;
+          }
+
+          const skillDir = skill.skillDir || skill.name;
+          try {
+            const res = await fetch(`/api/skills/${encodeURIComponent(skill.plugin)}/${encodeURIComponent(skillDir)}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              this.message = data.detail || `Delete failed: HTTP ${res.status}`;
+              this.messageError = true;
+            } else {
+              this.message = `Deleted skill "${skill.name}" from "${skill.plugin}".`;
+              this.messageError = false;
+              await this.fetchSkills();
+            }
+          } catch (e) {
+            this.message = 'Network error: ' + e.message;
+            this.messageError = true;
+          }
+        }
+      };
+    }
+  </script>
+
+</body>
+</html>
