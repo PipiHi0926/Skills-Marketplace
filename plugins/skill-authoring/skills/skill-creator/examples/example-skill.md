@@ -7,7 +7,7 @@ a skill that reviews code changes and provides structured feedback.
 
 ## Scenario
 
-A developer on the ISDD platform team wants a slash command that reviews staged
+A developer on the CIM platform team wants a slash command that reviews staged
 git changes and produces a structured code review with findings categorized by
 severity. The review should be read-only — it should never modify files or commit
 anything.
@@ -151,7 +151,7 @@ Add to `.claude-plugin/marketplace.json`:
 {
   "name": "code-review",
   "source": "./plugins/code-review",
-  "description": "Automated code review skill for ISDD teams",
+  "description": "Automated code review skill for CIM teams",
   "version": "1.0.0",
   "category": "developer-tools",
   "keywords": ["code-review", "quality", "security"]
@@ -162,8 +162,8 @@ And create `plugins/code-review/.claude-plugin/plugin.json` (no version field):
 ```json
 {
   "name": "code-review",
-  "description": "Automated code review skill for ISDD teams",
-  "author": { "name": "ISDD Platform Team" },
+  "description": "Automated code review skill for CIM teams",
+  "author": { "name": "CIM Platform Team" },
   "keywords": ["code-review", "quality", "security"]
 }
 ```

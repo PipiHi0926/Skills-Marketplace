@@ -1,11 +1,11 @@
 {
-  "name": "tsmc-isdd-skills",
+  "name": "cim-skills",
   "owner": {
-    "name": "ISDD Platform Team",
-    "email": "isdd-platform@tsmc.com"
+    "name": "CIM Platform Team",
+    "email": "cim-platform@your-company.com"
   },
   "metadata": {
-    "description": "TSMC ISDD internal Claude Code skills marketplace"
+    "description": "CIM Skills internal Claude Code skills marketplace"
   },
   "plugins": [
     {

@@ -2,8 +2,8 @@
   "name": "skill-authoring",
   "description": "Skills for creating and reviewing Claude Code skills",
   "author": {
-    "name": "ISDD Platform Team",
-    "email": "isdd-platform@tsmc.com"
+    "name": "CIM Platform Team",
+    "email": "cim-platform@your-company.com"
   },
   "keywords": ["skill-creator", "skill-review", "authoring"]
 }

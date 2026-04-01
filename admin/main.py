@@ -10,7 +10,7 @@ ADMIN_SECRET_TOKEN = os.getenv("ADMIN_SECRET_TOKEN", "changeme")
 SKILLS_REPO_PATH = os.getenv("SKILLS_REPO_PATH", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 app = FastAPI(
-    title="TSMC ISDD Skills Admin",
+    title="CIM Skills Skills Admin",
     description="Admin API for managing Claude Code skills marketplace",
     version="1.0.0",
 )

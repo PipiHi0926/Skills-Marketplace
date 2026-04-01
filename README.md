@@ -1,4 +1,4 @@
-# TSMC ISDD Claude Code Skills Marketplace
+# CIM Skills Claude Code Skills Marketplace
 ## 完整部署與使用教學
 
 > 本文件為公司內部 Claude Code Skills 自管平台的完整實作指南，  
@@ -48,7 +48,7 @@
 ```
 員工在 Claude Code 輸入：
   /plugin marketplace add <公司Git網址>
-  /plugin install skill-authoring@tsmc-isdd-skills
+  /plugin install skill-authoring@cim-skills
   /skill-creator   ← 開始使用
 ```
 
@@ -94,19 +94,19 @@ Docker 非必要。本教學提供有無 Docker 兩種方案。
 
 ```bash
 # 在這個目錄下初始化 git
-cd C:\Users\jason\Desktop\Project\TSMC\ISDD
+cd C:\path\to\cim-skills
 git init
 git add .
-git commit -m "Initial commit: TSMC ISDD Skills Marketplace"
+git commit -m "Initial commit: CIM Skills Skills Marketplace"
 
 # 推到公司 Git Server（網址請換成你們的）
-git remote add origin https://your-gitlab.tsmc.com/isdd/claude-skills.git
+git remote add origin https://your-gitlab.your-company.com/isdd/claude-skills.git
 git push -u origin main
 ```
 
 之後其他人 clone：
 ```bash
-git clone https://your-gitlab.tsmc.com/isdd/claude-skills.git
+git clone https://your-gitlab.your-company.com/isdd/claude-skills.git
 cd claude-skills
 ```
 
@@ -123,7 +123,7 @@ cd claude-skills
 ### 步驟 1：開啟 terminal，進到 repo 根目錄
 
 ```bash
-cd C:\Users\jason\Desktop\Project\TSMC\ISDD
+cd C:\path\to\cim-skills
 ```
 
 ### 步驟 2：啟動靜態 server
@@ -161,7 +161,7 @@ Serving HTTP on :: port 8080 (http://[::]:8080/) ...
 ### 步驟 1：安裝 Python 套件
 
 ```bash
-cd C:\Users\jason\Desktop\Project\TSMC\ISDD\admin
+cd C:\path\to\cim-skills\admin
 pip install -r requirements.txt
 ```
 
@@ -180,26 +180,26 @@ pip show fastapi uvicorn pyyaml
 
 **Windows（PowerShell）：**
 ```powershell
-$env:SKILLS_REPO_PATH = "C:\Users\jason\Desktop\Project\TSMC\ISDD"
+$env:SKILLS_REPO_PATH = "C:\path\to\cim-skills"
 $env:ADMIN_SECRET_TOKEN = "your-strong-password-here"
 ```
 
 **Windows（CMD）：**
 ```cmd
-set SKILLS_REPO_PATH=C:\Users\jason\Desktop\Project\TSMC\ISDD
+set SKILLS_REPO_PATH=C:\path\to\cim-skills
 set ADMIN_SECRET_TOKEN=your-strong-password-here
 ```
 
 **Linux / macOS：**
 ```bash
-export SKILLS_REPO_PATH=/path/to/ISDD
+export SKILLS_REPO_PATH=/path/to/CIM
 export ADMIN_SECRET_TOKEN=your-strong-password-here
 ```
 
 ### 步驟 3：啟動 FastAPI 後台
 
 ```bash
-cd C:\Users\jason\Desktop\Project\TSMC\ISDD\admin
+cd C:\path\to\cim-skills\admin
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -212,7 +212,7 @@ INFO:     Application startup complete.
 ### 步驟 4：啟動前端（另開一個 terminal）
 
 ```bash
-cd C:\Users\jason\Desktop\Project\TSMC\ISDD
+cd C:\path\to\cim-skills
 python -m http.server 8080
 ```
 
@@ -231,11 +231,11 @@ python -m http.server 8080
 
 ```bat
 @echo off
-set SKILLS_REPO_PATH=C:\Users\jason\Desktop\Project\TSMC\ISDD
+set SKILLS_REPO_PATH=C:\path\to\cim-skills
 set ADMIN_SECRET_TOKEN=your-strong-password-here
 
-start "ISDD Admin API" cmd /k "cd /d %SKILLS_REPO_PATH%\admin && uvicorn main:app --host 0.0.0.0 --port 8000"
-start "ISDD Frontend" cmd /k "cd /d %SKILLS_REPO_PATH% && python -m http.server 8080"
+start "CIM Admin API" cmd /k "cd /d %SKILLS_REPO_PATH%\admin && uvicorn main:app --host 0.0.0.0 --port 8000"
+start "CIM Frontend" cmd /k "cd /d %SKILLS_REPO_PATH% && python -m http.server 8080"
 
 echo Services started.
 echo Admin API: http://localhost:8000/docs
@@ -253,7 +253,7 @@ pause
 ### 步驟 1：設定 .env 檔案
 
 ```bash
-cd C:\Users\jason\Desktop\Project\TSMC\ISDD
+cd C:\path\to\cim-skills
 copy .env.example .env
 ```
 
@@ -361,7 +361,7 @@ curl -X POST http://localhost:8000/api/marketplace/sync \
 
 在 Claude Code 中輸入：
 ```
-/plugin marketplace add https://your-gitlab.tsmc.com/isdd/claude-skills.git
+/plugin marketplace add https://your-gitlab.your-company.com/isdd/claude-skills.git
 ```
 
 **方法二：自動設定（推薦給團隊統一設定）**
@@ -370,10 +370,10 @@ curl -X POST http://localhost:8000/api/marketplace/sync \
 ```json
 {
   "extraKnownMarketplaces": {
-    "tsmc-isdd-skills": {
+    "cim-skills": {
       "source": {
         "source": "url",
-        "url": "https://your-gitlab.tsmc.com/isdd/claude-skills.git"
+        "url": "https://your-gitlab.your-company.com/isdd/claude-skills.git"
       }
     }
   }
@@ -384,7 +384,7 @@ curl -X POST http://localhost:8000/api/marketplace/sync \
 ### 8.2 安裝 Plugin
 
 ```
-/plugin install skill-authoring@tsmc-isdd-skills
+/plugin install skill-authoring@cim-skills
 ```
 
 ### 8.3 使用 Skills
@@ -405,7 +405,7 @@ Claude 會審查指定的 SKILL.md，給出分數和改善建議。
 
 當管理員發布了新版 skill，員工輸入：
 ```
-/plugin update skill-authoring@tsmc-isdd-skills
+/plugin update skill-authoring@cim-skills
 ```
 
 ---
@@ -518,10 +518,10 @@ plugins/
 ```json
 {
   "name": "cicd-tools",
-  "description": "CI/CD workflow tools for ISDD teams",
+  "description": "CI/CD workflow tools for CIM teams",
   "author": {
-    "name": "ISDD Platform Team",
-    "email": "isdd-platform@tsmc.com"
+    "name": "CIM Platform Team",
+    "email": "cim-platform@your-company.com"
   },
   "keywords": ["cicd", "deploy", "pipeline"]
 }
@@ -542,7 +542,7 @@ plugins/
     {
       "name": "cicd-tools",
       "source": "./plugins/cicd-tools",
-      "description": "CI/CD workflow tools for ISDD teams",
+      "description": "CI/CD workflow tools for CIM teams",
       "version": "1.0.0",
       "category": "developer-tools",
       "keywords": ["cicd", "deploy", "pipeline"]
@@ -601,7 +601,7 @@ git push
 ## 12. 目錄結構說明
 
 ```
-ISDD/
+CIM/
 │
 ├── .claude/
 │   ├── settings.json          # 設定公司 marketplace URL（提交到 git）
@@ -696,7 +696,7 @@ ISDD/
 **A**: 嘗試重啟 Claude Code session，或確認 plugin 安裝成功：
 ```
 /plugin list
-# 確認 skill-authoring@tsmc-isdd-skills 有在清單中
+# 確認 skill-authoring@cim-skills 有在清單中
 ```
 
 ---
@@ -720,11 +720,11 @@ pip install --no-index --find-links=./wheels -r requirements.txt
 
 **A**: 員工執行：
 ```
-/plugin update skill-authoring@tsmc-isdd-skills
+/plugin update skill-authoring@cim-skills
 ```
 或是重新安裝：
 ```
-/plugin install skill-authoring@tsmc-isdd-skills
+/plugin install skill-authoring@cim-skills
 ```
 
 ---
@@ -737,7 +737,7 @@ pip install --no-index --find-links=./wheels -r requirements.txt
 
 ## 聯絡與貢獻
 
-如需新增 skill 或回報問題，請聯絡 ISDD Platform Team  
+如需新增 skill 或回報問題，請聯絡 CIM Platform Team  
 或在公司 Git Server 開 Issue / MR。
 
 新 skill 請先用 `/skill-review` 自我評分達到 7/10 以上再提交。

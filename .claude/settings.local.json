@@ -2,8 +2,11 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Read(//c/Users/jason/Desktop/Project/TSMC//**)",
-      "Read(//c/Users/jason/Desktop/Project//**)"
+      "Read(//c/Users/jason/Desktop/Project/CIM//**)",
+      "Read(//c/Users/jason/Desktop/Project//**)",
+      "Bash(python3 -c ':*)",
+      "Bash(python -c ':*)",
+      "Bash(python replace_keywords.py)"
     ]
   }
 }

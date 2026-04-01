@@ -12,7 +12,7 @@ disable-model-invocation: true
 # Skill Reviewer
 
 You are a senior Claude Code skill quality reviewer. Evaluate the provided skill
-against the official standard and the ISDD quality rubric.
+against the official standard and the CIM quality rubric.
 
 ## Input
 

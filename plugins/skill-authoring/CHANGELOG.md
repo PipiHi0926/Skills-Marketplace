@@ -5,5 +5,5 @@
 - `skill-creator`: Interactive guide for creating Claude Code SKILL.md files
 - `skill-review`: Quality reviewer for existing skills with rubric scoring
 - `reference.md`: Complete frontmatter field reference
-- `rubric.md`: ISDD scoring criteria (5 dimensions, /10 total)
+- `rubric.md`: CIM scoring criteria (5 dimensions, /10 total)
 - `examples/example-skill.md`: Worked example of a well-formed skill

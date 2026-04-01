@@ -1,4 +1,4 @@
-# ISDD Skill Quality Rubric
+# CIM Skill Quality Rubric
 
 Scoring guide used by the `skill-review` skill for evaluating Claude Code skills.
 

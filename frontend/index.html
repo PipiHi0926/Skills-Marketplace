@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TSMC ISDD Skills Marketplace</title>
+  <title>CIM Skills Skills Marketplace</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
@@ -18,7 +18,7 @@
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-3 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-widest bg-blue-600 text-white px-2.5 py-1 rounded-full">TSMC ISDD</span>
+            <span class="text-xs font-semibold uppercase tracking-widest bg-blue-600 text-white px-2.5 py-1 rounded-full">CIM Skills</span>
           </div>
           <h1 class="text-3xl font-bold tracking-tight">Skills Marketplace</h1>
           <p class="text-gray-400 mt-1">Browse and install Claude Code skills for your team</p>
@@ -59,7 +59,7 @@
         <div class="flex gap-4">
           <div class="flex-shrink-0 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
           <div>
-            <p class="text-sm font-semibold text-gray-800 mb-1">Add the ISDD marketplace</p>
+            <p class="text-sm font-semibold text-gray-800 mb-1">Add the CIM marketplace</p>
             <code class="block bg-gray-50 border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-mono">
               /plugin marketplace add YOUR-INTERNAL-GIT-URL
             </code>
@@ -71,7 +71,7 @@
           <div>
             <p class="text-sm font-semibold text-gray-800 mb-1">Install the plugin you want</p>
             <code class="block bg-gray-50 border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-mono">
-              /plugin install skill-authoring@tsmc-isdd-skills
+              /plugin install skill-authoring@cim-skills
             </code>
             <p class="text-xs text-gray-400 mt-1.5">Replace <span class="font-semibold">skill-authoring</span> with any plugin name below.</p>
           </div>
@@ -167,8 +167,8 @@
             <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Install command</p>
             <div class="flex items-center gap-2 bg-gray-900 rounded-lg px-3 py-2.5">
               <code class="text-xs text-green-400 font-mono flex-1 truncate"
-                    x-text="`/plugin install ${plugin.name}@tsmc-isdd-skills`"></code>
-              <button @click="copyText(`/plugin install ${plugin.name}@tsmc-isdd-skills`, `copy-${plugin.name}`)"
+                    x-text="`/plugin install ${plugin.name}@cim-skills`"></code>
+              <button @click="copyText(`/plugin install ${plugin.name}@cim-skills`, `copy-${plugin.name}`)"
                       class="flex-shrink-0 text-xs text-gray-300 hover:text-white font-medium transition">
                 <span :id="`copy-${plugin.name}`">Copy</span>
               </button>
@@ -190,7 +190,7 @@
   <!-- Footer -->
   <footer class="bg-white border-t border-gray-200 mt-8">
     <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
-      <span>Managed by <span class="font-medium text-gray-600">ISDD Platform Team</span></span>
+      <span>Managed by <span class="font-medium text-gray-600">CIM Platform Team</span></span>
       <div class="flex gap-4">
         <a href="/admin/" class="hover:text-gray-600 transition">Admin Panel</a>
         <a href="/api/docs" class="hover:text-gray-600 transition">API Docs</a>

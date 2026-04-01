@@ -19,7 +19,7 @@ def _plugin_json_path(repo_path: str, plugin: str) -> str:
 def read_marketplace(repo_path: str) -> dict:
     path = _marketplace_path(repo_path)
     if not os.path.exists(path):
-        return {"name": "tsmc-isdd-skills", "plugins": []}
+        return {"name": "cim-skills", "plugins": []}
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
@@ -104,7 +104,7 @@ def create_plugin(repo_path: str, name: str, description: str, category: str = "
     plugin_data = {
         "name": name,
         "description": description,
-        "author": {"name": "ISDD Platform Team"},
+        "author": {"name": "CIM Platform Team"},
         "keywords": keywords or [],
     }
     write_plugin_json(repo_path, name, plugin_data)
